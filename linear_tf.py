@@ -10,11 +10,13 @@ training_epochs = 2000
 display_step = 50
 
 n_samples = 100
+n_features = 5
 
 # Training Data
-true_W = [[3.5]]
+#true_W = np.array([[3.5, 4.8]]).T
+true_W = (np.random.random((n_features, 1))*5.)
 true_b = -8.5
-n_features = len(true_W)
+#n_features = len(true_W)
 train_X = np.random.random((n_samples, n_features))*10.
 train_Y = true_b + np.dot(train_X, true_W)
 
@@ -29,7 +31,6 @@ W = tf.Variable(tf.random_normal(shape=[n_features, 1]))
 b = tf.Variable(tf.random_normal(shape=[1]))
 
 # Construct a linear model
-#activation = tf.add(tf.mul(X, W), b)
 activation = tf.add(tf.matmul(X, W), b)
 
 # Minimize the squared errors
@@ -57,4 +58,5 @@ with tf.Session() as sess:
     print "Optimization Finished!"
     training_cost = sess.run(cost, feed_dict={X: train_X, Y: train_Y})
     print "Training cost=", training_cost, "W=", sess.run(W), "b=", sess.run(b), '\n'
+    print 'True W:', true_W
 
