@@ -11,7 +11,6 @@ def fit_lasso(data, labels, alpha):
     num_datapoints = data.shape[0]
     num_features = data.shape[1]
     x = tf.placeholder(tf.float32, [None, num_features])
-    #y_ = tf.placeholder(tf.float32, [None])
     y_ = tf.placeholder(tf.float32, [None, 1])
     coeffs = tf.Variable(tf.random_normal(shape=[num_features, 1]))
     bias = tf.Variable(tf.random_normal(shape=[1]))
@@ -20,13 +19,14 @@ def fit_lasso(data, labels, alpha):
     y = tf.matmul(x, coeffs) + bias
 
     # Cost function
-    #lasso_cost = (tf.reduce_sum(tf.pow(y-y_, 2)) + \
-    #            alpha*tf.reduce_sum(tf.abs(coeffs)))/(2.*num_datapoints)
-    lasso_cost = tf.reduce_sum(tf.pow(y-y_, 2))/(2.*num_datapoints)
+#    lasso_cost = (tf.reduce_sum(tf.pow(y-y_, 2)) + \
+#                alpha*tf.reduce_sum(tf.abs(coeffs)))/(2.*num_datapoints)
+    lasso_cost = tf.reduce_sum(tf.pow(y-y_, 2))/(2.*num_datapoints) + \
+                alpha*tf.reduce_sum(tf.abs(coeffs))
 
 
     # Minimizer
-    NUM_STEPS = 1000
+    NUM_STEPS = 2000
     optimizer = tf.train.AdamOptimizer(learning_rate=0.01)
     #optimizer = tf.train.GradientDescentOptimizer(0.001)
     #ptimizer = tf.train.MomentumOptimizer(learning_rate=0.001, momentum=0.1)
@@ -41,10 +41,7 @@ def fit_lasso(data, labels, alpha):
     for i in range(NUM_STEPS):
         if i % 100 == 0:
             print 'Step:', i
-        #for xi, yi in zip(data, labels):
         sess.run(train_step, feed_dict={x: data, y_: labels})
-        #    sess.run(train_step, feed_dict={x: np.expand_dims(xi, axis=0), 
-        #        y_: np.expand_dims(yi, axis=0)})
         cost_history[i] = sess.run(lasso_cost, feed_dict={x: data,
                 y_:labels})
 
