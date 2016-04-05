@@ -11,7 +11,8 @@ def fit_lasso(data, labels, alpha):
     num_datapoints = data.shape[0]
     num_features = data.shape[1]
     x = tf.placeholder(tf.float32, [None, num_features])
-    y_ = tf.placeholder(tf.float32, [None])
+    #y_ = tf.placeholder(tf.float32, [None])
+    y_ = tf.placeholder(tf.float32, [None, 1])
     coeffs = tf.Variable(tf.random_normal(shape=[num_features, 1]))
     bias = tf.Variable(tf.random_normal(shape=[1]))
 
@@ -78,7 +79,7 @@ def get_test_model(n_features=100):
     Return a linear function with n_features random 
     coefficients plus noise
     '''
-    coeffs = np.random.normal(size=n_features)
+    coeffs = np.random.normal(size=(n_features, 1))
     def func(x):
         return np.dot(x, coeffs)
     func.coeffs = coeffs

@@ -2,7 +2,7 @@ import lasso_tf
 import pylab as pl
 
 if __name__ == '__main__':
-    n_features = 10
+    n_features = 3
     func = lasso_tf.get_test_model(n_features=n_features)
     dataset_train, labels_train = lasso_tf.get_dataset(func, n_datapoints=1e2,
         n_features=n_features)
