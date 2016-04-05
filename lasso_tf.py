@@ -3,7 +3,7 @@ import pylab as pl
 import tensorflow as tf
 
 
-def fit_lasso(data, labels):
+def fit_lasso(data, labels, alpha):
     '''
     Fit a Lasso model using tensorflow
     '''
@@ -13,40 +13,62 @@ def fit_lasso(data, labels):
     x = tf.placeholder(tf.float32, [None, num_features])
     y_ = tf.placeholder(tf.float32, [None])
     coeffs = tf.Variable(tf.random_normal(shape=[num_features, 1]))
-    bias = tf.Variable(tf.zeros([1]))
+    bias = tf.Variable(tf.random_normal(shape=[1]))
 
     # Prediction
     y = tf.matmul(x, coeffs) + bias
 
     # Cost function
-    lasso_cost = tf.square(y-y_)
+    #lasso_cost = (tf.reduce_sum(tf.pow(y-y_, 2)) + \
+    #            alpha*tf.reduce_sum(tf.abs(coeffs)))/(2.*num_datapoints)
+    lasso_cost = tf.reduce_sum(tf.pow(y-y_, 2))/(2.*num_datapoints)
+
 
     # Minimizer
-    LEARNING_RATE = 1e-11
-    NUM_STEPS = 100
-    #optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE)
-    optimizer = tf.train.AdamOptimizer()
+    NUM_STEPS = 1000
+    optimizer = tf.train.AdamOptimizer(learning_rate=0.01)
+    #optimizer = tf.train.GradientDescentOptimizer(0.001)
+    #ptimizer = tf.train.MomentumOptimizer(learning_rate=0.001, momentum=0.1)
     train_step = optimizer.minimize(lasso_cost)
 
     # Fit the model
     init = tf.initialize_all_variables()
+    cost_history = np.zeros(NUM_STEPS)
     sess = tf.Session()
     sess.run(init)
-    for i in range(NUM_STEPS):
-        if i % 10 == 0:
-            print 'Step:', i
-        sess.run(train_step, feed_dict={x: data, y_: labels})
 
-    return coeffs.eval(session=sess)
+    for i in range(NUM_STEPS):
+        if i % 100 == 0:
+            print 'Step:', i
+        #for xi, yi in zip(data, labels):
+        sess.run(train_step, feed_dict={x: data, y_: labels})
+        #    sess.run(train_step, feed_dict={x: np.expand_dims(xi, axis=0), 
+        #        y_: np.expand_dims(yi, axis=0)})
+        cost_history[i] = sess.run(lasso_cost, feed_dict={x: data,
+                y_:labels})
+
+    return sess.run(coeffs), cost_history
+
+
+def normalize_dataset(dataset):
+    '''
+    Dataset should have the shape (n_datapoints, n_features)
+    '''
+    norm_data = np.zeros_like(dataset)
+    for i in range(dataset.shape[1]):
+        norm_data[:,i] = dataset[:,i]-dataset[:,i].mean()
+        norm_data[:,i] /= norm_data[:,i].std()
+    return norm_data
+
 
 
 # ---------- For testing ----------------
 
-def fit_lasso_scikit_learn(data, labels):
+def fit_lasso_scikit_learn(data, labels, alpha):
     '''
     '''
     from sklearn import linear_model
-    lasso_model = linear_model.Lasso(alpha=0.0001)
+    lasso_model = linear_model.Lasso(alpha=alpha)
     lasso_model.fit(X=data, y=labels)
     return lasso_model
 
@@ -71,8 +93,9 @@ def get_dataset(func, n_features=100, n_datapoints=1e4):
         input_data - n_features x n_datapoints
         output_data - n_datapoints
     '''
-    input_data = np.random.random((n_datapoints, n_features))
+    input_data = np.random.random((n_datapoints, n_features))*10.
     output_data = func(input_data)
     return input_data, output_data
 
 # --------------------------------------
+
