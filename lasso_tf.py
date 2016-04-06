@@ -16,11 +16,10 @@ def fit_lasso(data, labels, alpha):
     bias = tf.Variable(tf.random_normal(shape=[1]))
 
     # Prediction
-    y = tf.matmul(x, coeffs) + bias
+    #y = tf.matmul(x, coeffs) + bias
+    y = tf.sigmoid(tf.matmul(x, coeffs) + bias)
 
     # Cost function
-#    lasso_cost = (tf.reduce_sum(tf.pow(y-y_, 2)) + \
-#                alpha*tf.reduce_sum(tf.abs(coeffs)))/(2.*num_datapoints)
     lasso_cost = tf.reduce_sum(tf.pow(y-y_, 2))/(2.*num_datapoints) + \
                 alpha*tf.reduce_sum(tf.abs(coeffs))
 
@@ -28,8 +27,6 @@ def fit_lasso(data, labels, alpha):
     # Minimizer
     NUM_STEPS = 2000
     optimizer = tf.train.AdamOptimizer(learning_rate=0.01)
-    #optimizer = tf.train.GradientDescentOptimizer(0.001)
-    #ptimizer = tf.train.MomentumOptimizer(learning_rate=0.001, momentum=0.1)
     train_step = optimizer.minimize(lasso_cost)
 
     # Fit the model
