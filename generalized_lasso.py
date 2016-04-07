@@ -30,7 +30,7 @@ class GeneralizedLasso:
         self._learning_rate = learning_rate
 
 
-    def fit(self, X, y):
+    def fit(self, X, y, verbose=True):
         '''
         Fit the model to the given data.
 
@@ -40,6 +40,8 @@ class GeneralizedLasso:
                 be (n_samples, n_features)
             * y: numpy array
                 The labels
+            * verbose: boolean
+                If true, output steps
 
         TODO: normalize features
         '''
@@ -80,7 +82,7 @@ class GeneralizedLasso:
 
         # Fit the model
         for i in range(self._max_iter):
-            if i % 100 == 0:
+            if i % 100 == 0 and verbose:
                 print 'Step:', i
             sess.run(train_step, feed_dict={x: X, y_: y})
             self._cost_history[i] = sess.run(cost, feed_dict={x: X, y_:y})
@@ -114,29 +116,37 @@ class GeneralizedLasso:
             * n_folds: integer
                 The number of cross-validation folds
         '''
-        # Fit a model and calculate the cost for each alpha
+        print 'Starting %d-fold cross-validation...' % n_folds 
+
+        # Fit a model and calculate the CV cost for each alpha
         self.alpha_cost = np.zeros_like(alphas)
+        self.alpha_coeffs = np.zeros((len(alphas), X.shape[1]))
+        self.alpha_bias = np.zeros(len(alphas))
+
         for i, alpha in enumerate(alphas):
             self.alpha = alpha
             cost_sum = 0.
             for fold in range(n_folds):
-                train_idx, cv_idx = get_cv_idx(fold)
-                self.fit(X[train_idx], y[train_idx])
+                train_idx, cv_idx = self._get_cv_idx(fold, n_folds, len(y))
+                self.fit(X[train_idx], y[train_idx], verbose=False)
                 cost_sum += self.cost(X[cv_idx], y[cv_idx])
             self.alpha_cost[i] = cost_sum/float(n_folds)
+            print 'Cost for alpha=%.2f: %.2f' % (alpha, self.alpha_cost[i])
             # Save coeffs and bias
+            self.alpha_coeffs[i,:] = np.squeeze(self.coeffs)
+            self.alpha_bias[i] = self.bias
 
         # Find the alpha that gave the minimum cost
         best_idx = np.argmin(self.alpha_cost)
         self.alpha = alphas[best_idx]
-        self.coeffs = self.alpha_coeffs[best_idx, :]
+        self.coeffs = np.expand_dims(self.alpha_coeffs[best_idx, :], axis=1)
         self.bias = self.alpha_bias[best_idx]
 
         # Print results
         print 'Finished %d-fold cross-validation' % n_folds
         print 'Found best alpha: ', self.alpha
         print 'Minimum cost: ', self.alpha_cost.min()
-        
+
 
     def predict(self, X):
         '''
@@ -202,8 +212,35 @@ class GeneralizedLasso:
             * cost: float
                 The cost for the given data
         '''
+        # Run a forward prediction. This will also check
+        # dimensions of X
+        yhat = self.predict(X)
 
-        pass
+        # Check dimensions of y
+        if np.ndim(y) != 1:
+            raise ValueError('y must have dimension (n_samples)')
+        if len(y) != X.shape[0]:
+            raise ValueError('y must be of length X.shape[0]')
+
+        # Add an empty dimension to y
+        y = np.expand_dims(y, axis=1)
+
+        # Add an empty dimension to yhat
+        yhat = np.expand_dims(yhat, axis=1)
+
+        # Setup graph
+        n_samples, n_features = X.shape
+        y_ = tf.placeholder(tf.float32, [None, 1])
+        predict = tf.placeholder(tf.float32, [None, 1])
+        coeffs_ = tf.Variable(tf.random_normal(shape=[n_features, 1]))
+        cost = self._get_cost_function(predict, y_, n_samples, coeffs_)
+
+        # Run cost function
+        sess = tf.Session()
+        sess.run(tf.initialize_all_variables())
+        c = sess.run(cost, feed_dict={predict: yhat, y_: y, 
+            coeffs_: self.coeffs})
+        return c
 
 
     #--------- Methods for internal use -----------------------
@@ -230,5 +267,24 @@ class GeneralizedLasso:
         cost = tf.reduce_sum(tf.square(predict-y_))/(2.*n_samples) + \
                     self.alpha*tf.reduce_sum(tf.abs(coeffs))
         return cost
+
+
+    #--------- For cross-validation ---------------------------
+    def _get_cv_idx(self, fold, n_folds, n_samples):
+        '''
+        Get indices for the given CV fold.
+        fold starts at 0
+        Assume unordered data
+        Return training_idx, cv_idx
+        '''
+        fold_size = n_samples/n_folds
+        low_idx = fold*fold_size
+        high_idx = (fold+1)*fold_size
+        assert low_idx >= 0
+        assert high_idx <= n_samples
+        all_idx = np.arange(n_samples)
+        cv_idx = (all_idx >= low_idx)*(all_idx < high_idx)
+        train_idx = ~cv_idx
+        return train_idx, cv_idx
 
 
