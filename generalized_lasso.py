@@ -131,7 +131,7 @@ class GeneralizedLasso:
                 self.fit(X[train_idx], y[train_idx], verbose=False)
                 cost_sum += self.cost(X[cv_idx], y[cv_idx])
             self.alpha_cost[i] = cost_sum/float(n_folds)
-            print 'Cost for alpha=%.2f: %.2f' % (alpha, self.alpha_cost[i])
+            print 'Cost for alpha=%.5f: %.5f' % (alpha, self.alpha_cost[i])
             # Save coeffs and bias
             self.alpha_coeffs[i,:] = np.squeeze(self.coeffs)
             self.alpha_bias[i] = self.bias
