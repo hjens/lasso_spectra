@@ -98,10 +98,10 @@ class GeneralizedLasso:
 
     def fit_CV(self, X, y, alphas=np.linspace(0.1, 10, 5), n_folds=10):
         '''
-        Find the value of alpha that gives the lowest cost, using
+        Find the value of alpha that gives the lowest mse, using
         N-fold cross-validation. After this method has ran, the alpha
         property will be set to the value that gives the lowest cross-
-        validation cost. The property alpha_cost will contain the cost
+        validation mse. The property alpha_mse will contain the mse
         for each value of alpha. The matrix alpha_coeffs will contain the
         coefficients for each alpha.
 
@@ -118,26 +118,26 @@ class GeneralizedLasso:
         '''
         print 'Starting %d-fold cross-validation...' % n_folds 
 
-        # Fit a model and calculate the CV cost for each alpha
-        self.alpha_cost = np.zeros_like(alphas)
+        # Fit a model and calculate the CV mse for each alpha
+        self.alpha_mse = np.zeros_like(alphas)
         self.alpha_coeffs = np.zeros((len(alphas), X.shape[1]))
         self.alpha_bias = np.zeros(len(alphas))
 
         for i, alpha in enumerate(alphas):
             self.alpha = alpha
-            cost_sum = 0.
+            mse_sum = 0.
             for fold in range(n_folds):
                 train_idx, cv_idx = self._get_cv_idx(fold, n_folds, len(y))
                 self.fit(X[train_idx], y[train_idx], verbose=False)
-                cost_sum += self.cost(X[cv_idx], y[cv_idx])
-            self.alpha_cost[i] = cost_sum/float(n_folds)
-            print 'Cost for alpha=%.5f: %.5f' % (alpha, self.alpha_cost[i])
+                mse_sum += self.mse(X[cv_idx], y[cv_idx])
+            self.alpha_mse[i] = mse_sum/float(n_folds)
+            print 'MSE for alpha=%.5f: %.5f' % (alpha, self.alpha_mse[i])
             # Save coeffs and bias
             self.alpha_coeffs[i,:] = np.squeeze(self.coeffs)
             self.alpha_bias[i] = self.bias
 
-        # Find the alpha that gave the minimum cost
-        best_idx = np.argmin(self.alpha_cost)
+        # Find the alpha that gave the minimum mse
+        best_idx = np.argmin(self.alpha_mse)
         self.alpha = alphas[best_idx]
         self.coeffs = np.expand_dims(self.alpha_coeffs[best_idx, :], axis=1)
         self.bias = self.alpha_bias[best_idx]
@@ -145,7 +145,7 @@ class GeneralizedLasso:
         # Print results
         print 'Finished %d-fold cross-validation' % n_folds
         print 'Found best alpha: ', self.alpha
-        print 'Minimum cost: ', self.alpha_cost.min()
+        print 'Minimum mse: ', self.alpha_mse.min()
 
 
     def predict(self, X):
@@ -197,9 +197,9 @@ class GeneralizedLasso:
         return np.squeeze(yhat)
 
 
-    def cost(self, X, y):
+    def mse(self, X, y):
         '''
-        Calculate the cost for data and labels
+        Calculate the mean squared error for data and labels
 
         Parameters:
             * X: numpy matrix 
@@ -209,8 +209,8 @@ class GeneralizedLasso:
             * y: numpy array
                 The labels
         Returns:
-            * cost: float
-                The cost for the given data
+            * mse: float
+                The mse for the given data
         '''
         # Run a forward prediction. This will also check
         # dimensions of X
@@ -229,17 +229,14 @@ class GeneralizedLasso:
         yhat = np.expand_dims(yhat, axis=1)
 
         # Setup graph
-        n_samples, n_features = X.shape
         y_ = tf.placeholder(tf.float32, [None, 1])
         predict = tf.placeholder(tf.float32, [None, 1])
-        coeffs_ = tf.Variable(tf.random_normal(shape=[n_features, 1]))
-        cost = self._get_cost_function(predict, y_, n_samples, coeffs_)
+        mse = self._get_mse(predict, y_)
 
-        # Run cost function
+        # Run mse function
         sess = tf.Session()
         sess.run(tf.initialize_all_variables())
-        c = sess.run(cost, feed_dict={predict: yhat, y_: y, 
-            coeffs_: self.coeffs})
+        c = sess.run(mse, feed_dict={predict: yhat, y_: y})
         return c
 
 
@@ -267,6 +264,14 @@ class GeneralizedLasso:
         cost = tf.reduce_sum(tf.square(predict-y_))/(2.*n_samples) + \
                     self.alpha*tf.reduce_sum(tf.abs(coeffs))
         return cost
+
+
+    def _get_mse(self, predict, y_):
+        '''
+        Mean square error
+        '''
+        mse = tf.reduce_mean(tf.square(predict-y_))
+        return mse
 
 
     #--------- For cross-validation ---------------------------
