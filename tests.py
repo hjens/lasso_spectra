@@ -2,7 +2,8 @@ import lasso_tf
 import pylab as pl
 import numpy as np
 import generalized_lasso as gl
-from sklearn.linear_model import LassoCV
+from sklearn.linear_model import LassoCV, Lasso
+
 
 # Data generation
 def get_test_model(n_features=100):
@@ -42,33 +43,28 @@ def sigmoid(x):
 # Tests ------------------
 
 def test_cross_validation():
-    n_features = 2
+    np.random.seed(1)
+    n_features = 3
     func = get_test_model(n_features=n_features)
     dataset_train, labels_train = get_random_dataset(func, 
-        n_datapoints=2e3, n_features=n_features, noise_level=1.)
-    alphas = 10**np.linspace(-3, 1, 10)
+        n_datapoints=5e3, n_features=n_features, noise_level=1.)
+    alphas = 10**np.linspace(-3, 2, 10)
 
     # Fit scikit lasso
     lasso_scikit = LassoCV(alphas=alphas, cv=5, normalize=False)
     lasso_scikit.fit(dataset_train, labels_train[:,0])
     scikit_cost = lasso_scikit.mse_path_.mean(axis=1)
+    print scikit_cost
 
     # Fit tf lasso
-    gen_lasso = gl.GeneralizedLasso(alpha=0.001, max_iter=500,
+    gen_lasso = gl.GeneralizedLasso(alpha=0.001, max_iter=1000,
         link_function=None)
     gen_lasso.fit_CV(dataset_train, labels_train[:,0], alphas=alphas,
         n_folds=5)
 
-    #pl.figure()
-    #for i in range(n_features):
-    #    pl.plot(alphas, gen_lasso.alpha_coeffs[:,i])
-    #pl.xlabel('alpha')
-    #pl.ylabel('coefficient value')
-
     pl.figure()
     pl.semilogx(alphas, gen_lasso.alpha_mse, label='tf')
-    pl.loglog(lasso_scikit.alphas_, scikit_cost, label='scikit')
-    #pl.loglog(lasso_scikit.alphas_, lasso_scikit.mse_path_)
+    pl.semilogx(lasso_scikit.alphas_, scikit_cost, label='scikit')
     pl.legend(loc='best')
     pl.xlabel('alpha')
     pl.ylabel('cost')
@@ -83,13 +79,22 @@ def test_linear_regression():
         n_datapoints=5e2, n_features=n_features, noise_level=1.e-10)
 
     # Fit tf lasso
-    gen_lasso = gl.GeneralizedLasso(alpha=1.e-10, max_iter=2000,
+    gen_lasso = gl.GeneralizedLasso(alpha=1.e-10, max_iter=5000,
         link_function=None)
     gen_lasso.fit(dataset_train, labels_train[:,0])
+
+    # Fit scikit lasso
+    lasso_scikit = Lasso(alpha=1.e-10)
+    lasso_scikit.fit(dataset_train, labels_train[:,0])
+
+    # Print mse. This will be worse for TF, since it is not exact
+    print 'Scikit mse', lasso_scikit.score(dataset_train, labels_train[:,0])
+    print 'TF mse', gen_lasso.mse(dataset_train, labels_train[:,0])
 
     # Plot results
     pl.plot(gen_lasso.coeffs, 'o-', label='tf fit')
     pl.plot(func.coeffs, 'x-', label='true')
+    pl.plot(lasso_scikit.coef_, '^', label='scikit')
     pl.legend(loc='best')
     pl.title('Test linear regression')
     pl.ylabel('Coeff value')
@@ -97,7 +102,7 @@ def test_linear_regression():
 
 
 def test_link_function():
-    np.random.seed(3)
+    np.random.seed(3) #This seed gives both positive and negative coefficients
     n_features = 4
     func = get_test_model(n_features=n_features)
     dataset_train, labels_train = get_random_dataset(func, 
@@ -159,6 +164,6 @@ def test_regularization():
 
 if __name__ == '__main__':
     #test_cross_validation()
-    #test_linear_regression()
+    test_linear_regression()
     #test_regularization()
-    test_link_function()
+    #test_link_function()

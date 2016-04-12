@@ -219,7 +219,7 @@ class GeneralizedLasso:
 
         # Check dimensions of y
         if np.ndim(y) != 1:
-            raise ValueError('y must have dimension (n_samples)')
+            raise ValueError('y must have shape (n_samples)')
         if len(y) != X.shape[0]:
             raise ValueError('y must be of length X.shape[0]')
 
