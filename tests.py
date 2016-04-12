@@ -96,6 +96,40 @@ def test_linear_regression():
     pl.show()
 
 
+def test_link_function():
+    np.random.seed(3)
+    n_features = 4
+    func = get_test_model(n_features=n_features)
+    dataset_train, labels_train = get_random_dataset(func, 
+        n_datapoints=5e3, n_features=n_features, noise_level=1.e-10)
+    labels_train = sigmoid(labels_train)
+
+    # Fit tf lasso
+    gen_lasso = gl.GeneralizedLasso(alpha=1.e-10, max_iter=2000,
+        link_function='sigmoid', learning_rate=0.1)
+    gen_lasso.fit(dataset_train, labels_train[:,0])
+
+    # Predict values
+    predicted = gen_lasso.predict(dataset_train)
+
+    # Plot results
+    pl.subplot(131)
+    pl.plot(gen_lasso.coeffs, 'o-', label='tf fit')
+    pl.plot(func.coeffs, 'x-', label='true')
+    pl.legend(loc='best')
+    pl.title('Test sigmoid link function')
+    pl.ylabel('Coeff value')
+    pl.subplot(132)
+    pl.semilogy(gen_lasso._cost_history)
+    pl.ylabel('cost')
+    pl.xlabel('iterations')
+    pl.subplot(133)
+    pl.plot(predicted, labels_train, 'o')
+    pl.xlabel('Predicted')
+    pl.ylabel('True')
+    pl.show()
+
+
 def test_regularization():
     np.random.seed(1)
     n_features = 5
@@ -104,7 +138,7 @@ def test_regularization():
         n_datapoints=1e3, n_features=n_features, noise_level=1.e-10)
 
     alphas = 10**np.linspace(-1, 3, 10)
-    alpha_coeffs = np.zeros((n_features, len(alphas)))
+    alpha_coeffs = np.zeros([n_features, len(alphas)])
     for i, alpha in enumerate(alphas):
         gen_lasso = gl.GeneralizedLasso(alpha=alpha, max_iter=2000,
         link_function=None)
@@ -126,4 +160,5 @@ def test_regularization():
 if __name__ == '__main__':
     #test_cross_validation()
     #test_linear_regression()
-    test_regularization()
+    #test_regularization()
+    test_link_function()
