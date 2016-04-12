@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
+#TODO: move properties to beginning
 
 class GeneralizedLasso:
     def __init__(self, alpha=1.0, normalize=False, max_iter=1000, 

@@ -2,7 +2,7 @@ import lasso_tf
 import pylab as pl
 import numpy as np
 import generalized_lasso as gl
-from sklearn.linear_model import LassoCV, Lasso
+import lasso
 
 
 # Data generation
@@ -51,20 +51,20 @@ def test_cross_validation():
     alphas = 10**np.linspace(-3, 2, 10)
 
     # Fit scikit lasso
-    lasso_scikit = LassoCV(alphas=alphas, cv=5, normalize=False)
-    lasso_scikit.fit(dataset_train, labels_train[:,0])
-    scikit_cost = lasso_scikit.mse_path_.mean(axis=1)
-    print scikit_cost
+    lasso_scikit = lasso.SKLasso(alpha=0.001, max_iter=1000)
+    lasso_scikit.fit_CV(dataset_train, labels_train[:,0], alphas=alphas,
+                        n_folds=5)
 
     # Fit tf lasso
     gen_lasso = gl.GeneralizedLasso(alpha=0.001, max_iter=1000,
-        link_function=None)
+                                    link_function=None)
     gen_lasso.fit_CV(dataset_train, labels_train[:,0], alphas=alphas,
-        n_folds=5)
+                     n_folds=5)
 
     pl.figure()
-    pl.semilogx(alphas, gen_lasso.alpha_mse, label='tf')
-    pl.semilogx(lasso_scikit.alphas_, scikit_cost, label='scikit')
+    pl.title('CV test. TF will have higher errors, since it is not exact')
+    pl.semilogx(alphas, gen_lasso.alpha_mse, 'o-', label='tf')
+    pl.semilogx(alphas, lasso_scikit.alpha_mse, '*-', label='scikit')
     pl.legend(loc='best')
     pl.xlabel('alpha')
     pl.ylabel('cost')
@@ -84,17 +84,17 @@ def test_linear_regression():
     gen_lasso.fit(dataset_train, labels_train[:,0])
 
     # Fit scikit lasso
-    lasso_scikit = Lasso(alpha=1.e-10)
+    lasso_scikit = lasso.SKLasso(alpha=1.e-10, max_iter=5000)
     lasso_scikit.fit(dataset_train, labels_train[:,0])
 
     # Print mse. This will be worse for TF, since it is not exact
-    print 'Scikit mse', lasso_scikit.score(dataset_train, labels_train[:,0])
+    print 'Scikit mse', lasso_scikit.mse(dataset_train, labels_train[:,0])
     print 'TF mse', gen_lasso.mse(dataset_train, labels_train[:,0])
 
     # Plot results
     pl.plot(gen_lasso.coeffs, 'o-', label='tf fit')
     pl.plot(func.coeffs, 'x-', label='true')
-    pl.plot(lasso_scikit.coef_, '^', label='scikit')
+    pl.plot(lasso_scikit.coeffs, '^', label='scikit')
     pl.legend(loc='best')
     pl.title('Test linear regression')
     pl.ylabel('Coeff value')
@@ -163,7 +163,7 @@ def test_regularization():
 
 
 if __name__ == '__main__':
-    #test_cross_validation()
-    test_linear_regression()
+    test_cross_validation()
+    #test_linear_regression()
     #test_regularization()
     #test_link_function()
