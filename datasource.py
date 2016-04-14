@@ -3,6 +3,9 @@ from numpy.lib.recfunctions import append_fields
 
 
 class DataSource:
+    """ A source of data for the machine learning routines
+    """
+
     data = None
     target = None
     training_data = None
@@ -16,12 +19,18 @@ class DataSource:
         pass
 
     def shuffle_data(self):
+        """ Shuffle data and targets """
         indices = np.arange(self.num_objs)
         np.random.shuffle(indices)
         self.data = self.data[indices, :]
         self.target = self.target[indices]
 
     def split_data(self, training_fraction=0.8):
+        """ Split data into a training set and a test set
+
+        :param training_fraction: The fraction of the data to use
+        for training
+        """
         if training_fraction < 0. or training_fraction > 1.0:
             raise ValueError('training_fraction must be between 0 and 1')
         num_train_objs = int(self.num_objs*training_fraction)
@@ -32,15 +41,16 @@ class DataSource:
 
 
 class NarrowSpectraTable (DataSource):
+    """ Data source from a narrow spectra file, where
+    each variable has its own column """
 
     def __init__(self, filename, target_name='fesc', feature_name='flux_noisy'):
-        '''
-        Initialize a data source with a csv file
+        """ Initialize the data source with a file
 
-        Parameters:
-            filename: string
-             The file to read
-        '''
+        :param filename: The file name to read
+        :param target_name: The name of the target column
+        :param feature_name: The name of the features column
+        """
         self.raw_data = np.genfromtxt(filename, names=True,
                                   delimiter=',')
         self.colnames = self.raw_data.dtype.names
@@ -50,13 +60,14 @@ class NarrowSpectraTable (DataSource):
 
     def _make_design_matrix(self, target_col, feature_col,
                             id_name1='gal_id', id_name2='fesc'):
-        '''
-        Generate a design matrix
+        """ Create the design matrix from the raw data
 
-        :param target_col:
-        :param feature_col:
-        :return:
-        '''
+        :param target_col: The name of the target column
+        :param feature_col: The name of the feature column
+        :param id_name1: The name of the first id column
+        :param id_name2: The name of the second id column
+        """
+
         # Figure out how many unique objects there are
         col1 = self.raw_data[id_name1]
         col2 = self.raw_data[id_name2]

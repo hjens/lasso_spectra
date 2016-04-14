@@ -6,47 +6,36 @@ import tensorflow as tf
 class GeneralizedLasso:
     def __init__(self, alpha=1.0, normalize=False, max_iter=1000, 
                 link_function=None, learning_rate=0.01):
-        '''
-        A generalized linear model with L1 regularization and the
+        """ A generalized linear model with L1 regularization and the
         possibility to specify different link functions.
 
-        Parameters:
-            * alpha: float
-                The regularization constant
-            * normalize: boolean
-                Whether to normalize features before fitting
-            * max_iter: int
-                The maximum number of learning epochs to 
+        :param alpha: The regularization constant
+        :param normalize: Whether to normalize features before fitting
+        :param max_iter: The maximum number of learning epochs to
                 use when fitting
-            * link_function: string or None
-                The link function to use. Valid values are:
+        :param link_function: The link function to use.
+                Valid values are:
                 - None: No link function (standard lasso)
                 - sigmoid: a sigmoid function, 1/(1+exp(-x))
-            * learning_rate: float
-                The learning rate
-        '''
+        :param learning_rate: The learning rate
+        :type link_function: string
+        """
         self.alpha = alpha
         self._normalize = normalize
         self._max_iter = max_iter
         self._link_function = link_function
         self._learning_rate = learning_rate
 
-
     def fit(self, X, y, verbose=True):
-        '''
-        Fit the model to the given data.
+        """ Fit the model to the given data.
 
-        Parameters:
-            * X: numpy matrix
-                The data matrix. Shape must 
+        :param X: The data matrix. Shape must
                 be (n_samples, n_features)
-            * y: numpy array
-                The labels
-            * verbose: boolean
-                If true, output steps
+        :param y: The labels
+        :param verbose: If true, output steps
 
         TODO: normalize features
-        '''
+        """
         # Check dimensions of data
         if np.ndim(X) != 2:
             raise ValueError('X must have dimensions (n_samples, n_features')
@@ -97,28 +86,21 @@ class GeneralizedLasso:
         self.coeffs = sess.run(coeffs)
         self.bias = sess.run(bias)
 
-
     def fit_CV(self, X, y, alphas=np.linspace(0.1, 10, 5), n_folds=10):
-        '''
-        Find the value of alpha that gives the lowest mse, using
+        """ Find the value of alpha that gives the lowest mse, using
         N-fold cross-validation. After this method has ran, the alpha
         property will be set to the value that gives the lowest cross-
         validation mse. The property alpha_mse will contain the mse
         for each value of alpha. The matrix alpha_coeffs will contain the
         coefficients for each alpha.
 
-        Parameters:
-            * X: numpy matrix
-                The data matrix. Shape must 
+        :param X: The data matrix. Shape must
                 be (n_samples, n_features)
-            * y: numpy array
-                The labels
-            * alphas: numpy array
-                The values of alpha to try
-            * n_folds: integer
-                The number of cross-validation folds
-        '''
-        print 'Starting %d-fold cross-validation...' % n_folds 
+        :param y: The labels
+        :param alphas: The values of alpha to try
+        :param n_folds: The number of cross-validation folds
+        """
+        print 'Starting %d-fold cross-validation...' % n_folds
 
         # Fit a model and calculate the CV mse for each alpha
         self.alpha_mse = np.zeros_like(alphas)
@@ -149,21 +131,14 @@ class GeneralizedLasso:
         print 'Found best alpha: ', self.alpha
         print 'Minimum mse: ', self.alpha_mse.min()
 
-
     def predict(self, X):
-        '''
-        Predict y for X
+        """ Predict y for X
 
-        Parameters:
-            * X: numpy matrix 
-                The data matrix. Shape must 
+        :param X: The data matrix. Shape must
                 be (n_samples, n_features) or
                 (n_features)
-
-        Returns:
-            * yhat: numpy array
-                The estimate of y
-        '''
+        :return: The estimate of y
+        """
         # Check that we have a model to use for prediction
         if not hasattr(self, 'coeffs'):
             raise Exception('Must fit a model before predicting values.')
@@ -198,22 +173,15 @@ class GeneralizedLasso:
 
         return np.squeeze(yhat)
 
-
     def mse(self, X, y):
-        '''
-        Calculate the mean squared error for data and labels
+        """ Calculate the mean squared error for data and labels
 
-        Parameters:
-            * X: numpy matrix 
-                The data matrix. Shape must 
+        :param X: The data matrix. Shape must
                 be (n_samples, n_features) or
                 (n_features)
-            * y: numpy array
-                The labels
-        Returns:
-            * mse: float
-                The mse for the given data
-        '''
+        :param y: The labels
+        :return: The mse for the given data
+        """
         # Run a forward prediction. This will also check
         # dimensions of X
         yhat = self.predict(X)
@@ -241,14 +209,11 @@ class GeneralizedLasso:
         c = sess.run(mse, feed_dict={predict: yhat, y_: y})
         return c
 
-
     #--------- Methods for internal use -----------------------
 
     #--------- Building the tensorflow computational graph ----
     def _get_predictor(self, x, coeffs, bias):
-        '''
-        Create the prediction part of the tf graph
-        '''
+        """Create the prediction part of the tf graph """
         if self._link_function is None:
             predict = tf.matmul(x, coeffs) + bias
         elif self._link_function == 'sigmoid':
@@ -258,32 +223,23 @@ class GeneralizedLasso:
                  self._link_function)
         return predict
 
-
     def _get_cost_function(self, predict, y_, n_samples, coeffs):
-        '''
-        Create the cost function part of the tf graph
-        '''
+        """Create the cost function part of the tf graph"""
         cost = tf.reduce_sum(tf.square(predict-y_))/(2.*n_samples) + \
                     self.alpha*tf.reduce_sum(tf.abs(coeffs))
         return cost
 
-
     def _get_mse(self, predict, y_):
-        '''
-        Mean square error
-        '''
+        """Mean square error """
         mse = tf.reduce_mean(tf.square(predict-y_))
         return mse
 
-
     #--------- For cross-validation ---------------------------
     def _get_cv_idx(self, fold, n_folds, n_samples):
-        '''
-        Get indices for the given CV fold.
+        """Get indices for the given CV fold.
         fold starts at 0
         Assume unordered data
-        Return training_idx, cv_idx
-        '''
+        Return training_idx, cv_idx"""
         fold_size = n_samples/n_folds
         low_idx = fold*fold_size
         high_idx = (fold+1)*fold_size
@@ -293,5 +249,3 @@ class GeneralizedLasso:
         cv_idx = (all_idx >= low_idx)*(all_idx < high_idx)
         train_idx = ~cv_idx
         return train_idx, cv_idx
-
-
