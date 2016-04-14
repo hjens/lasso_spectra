@@ -3,6 +3,8 @@ sys.path.append('..')
 import lasso_spectra
 import pylab as pl
 import numpy as np
+import pickle
+import  os
 
 np.random.seed(4)
 
@@ -18,6 +20,14 @@ print lasso_model.alpha
 # Predict results for test set
 true_fesc = datasource.test_target
 predicted_fesc = lasso_model.predict(datasource.test_data)
+
+# The model can be saved and loaded later
+tempfile = 'lasso_temp.bin'
+with open(tempfile, 'w') as f:
+    pickle.dump(lasso_model, f)
+with open(tempfile, 'r') as f:
+    lasso_model = pickle.load(f)
+os.remove(tempfile)
 
 # Plot true vs predicted fesc, and model coefficients
 pl.subplot(121)

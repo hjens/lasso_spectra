@@ -19,14 +19,14 @@ class DataSource:
     def __init__(self):
         pass
 
-    def shuffle_data(self):
+    def _shuffle_data(self):
         """ Shuffle data and targets """
         indices = np.arange(self.num_objs)
         np.random.shuffle(indices)
         self.data = self.data[indices, :]
         self.target = self.target[indices]
 
-    def split_data(self, training_fraction=0.8):
+    def _split_data(self, training_fraction=0.8):
         """ Split data into a training set and a test set
 
         :param training_fraction: The fraction of the data to use
@@ -64,12 +64,11 @@ class NarrowSpectraTable (DataSource):
         self._make_design_matrix(target_col=target_name, feature_col=feature_name,
                                  id_name1='gal_id', id_name2=target_name,
                                  feature_id=feature_id)
-        self.shuffle_data()
-        self.split_data()
+        self._shuffle_data()
+        self._split_data()
 
     def _make_design_matrix(self, target_col, feature_col,
-                            id_name1='gal_id', id_name2='fesc',
-                            feature_id='wavel'):
+                            id_name1, id_name2, feature_id='wavel'):
         """ Create the design matrix from the raw data
 
         :param target_col: The name of the target column
