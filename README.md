@@ -13,7 +13,9 @@ Package installation
 ====================
 Download the package and put it in your python path. Make sure you can
 import it:
->>> import lasso_spectra
+```
+import lasso_spectra
+```
 
 You need to have `numpy` and `scipy` installed. For `GeneralizedLasso` you
 also need `tensorflow`, and for `SKLasso` you need `scikit-learn`.
