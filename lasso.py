@@ -27,7 +27,7 @@ class SKLasso:
 
         :param X: The data matrix. Shape must
                 be (n_samples, n_features)
-        :param y: The labels
+        :param y: The target
         :param verbose: If true, output steps
         """
         # Fit model
@@ -48,7 +48,7 @@ class SKLasso:
 
         :param X: The data matrix. Shape must
                 be (n_samples, n_features)
-        :param y: The labels
+        :param y: The target
         :param alphas: The values of alpha to try
         :param n_folds: The number of cross-validation folds
         """
@@ -76,12 +76,12 @@ class SKLasso:
         return self.bias + np.dot(X, self.coeffs)
 
     def mse(self, X, y):
-        """ Calculate the mean squared error for data and labels
+        """ Calculate the mean squared error for data and target
 
         :param X: The data matrix. Shape must
                 be (n_samples, n_features) or
                 (n_features)
-        :param y: The labels
+        :param y: The target
         :return: mse: float
         """
         yhat = self.predict(X)

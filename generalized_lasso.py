@@ -31,7 +31,7 @@ class GeneralizedLasso:
 
         :param X: The data matrix. Shape must
                 be (n_samples, n_features)
-        :param y: The labels
+        :param y: The target
         :param verbose: If true, output steps
 
         TODO: normalize features
@@ -96,7 +96,7 @@ class GeneralizedLasso:
 
         :param X: The data matrix. Shape must
                 be (n_samples, n_features)
-        :param y: The labels
+        :param y: The target
         :param alphas: The values of alpha to try
         :param n_folds: The number of cross-validation folds
         """
@@ -174,12 +174,12 @@ class GeneralizedLasso:
         return np.squeeze(yhat)
 
     def mse(self, X, y):
-        """ Calculate the mean squared error for data and labels
+        """ Calculate the mean squared error for data and target
 
         :param X: The data matrix. Shape must
                 be (n_samples, n_features) or
                 (n_features)
-        :param y: The labels
+        :param y: The target
         :return: The mse for the given data
         """
         # Run a forward prediction. This will also check

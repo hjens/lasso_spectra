@@ -41,12 +41,62 @@ class DataSource:
         self.test_target = self.target[num_train_objs:]
 
 
-class NarrowSpectraTable (DataSource):
-    """ Data source from a narrow spectra file, where
+class SpectrumTableWide(DataSource):
+    """ Data source from a wide spectrum file, where
+    each feature has its own column
+    """
+
+    def __init__(self, filename, target_name='fesc', exclude_cols=[],
+                 training_fraction=0.8):
+        """
+        Initialize the data source with a file.
+        Also shuffle the data and divide into a test set and
+        a training set.
+
+        :param filename: The file name to read
+        :param target_name: The name of the target column
+        :param exclude_cols: List of names of columns to exclude
+        :param training_fraction: The fraction of the data to
+        use for training
+        """
+        self.raw_data = np.genfromtxt(filename, names=True,
+                                      delimiter=',')
+        self._make_design_matrix(target_col=target_name,
+                                 exclude_cols=exclude_cols)
+        self._shuffle_data()
+        self._split_data(training_fraction)
+
+    def _make_design_matrix(self, target_col, exclude_cols):
+        # Check type of exclude_cols
+        if not hasattr(exclude_cols, '__iter__'):
+            raise ValueError('exclude_cols must be a list of column names, or '
+                             'an empty list')
+        # We always want to exclude the target column from the design matrix
+        if not target_col in exclude_cols:
+            exclude_cols.append(target_col)
+        # Target vector
+        self.target = self.raw_data[target_col]
+        # Copy full data and remove unused columns
+        self.data = self.raw_data.copy()
+        self.data = self._rmfield(self.data, exclude_cols)
+        self.num_objs = len(self.data)
+        self.num_features = len(self.data.dtype.names)
+        # Extract feature names
+        self.feature_id = map(float, self.data.dtype.names)
+        # Convert to numpy matrix
+        self.data = self.data.view((float, len(self.data.dtype.names)))
+
+    def _rmfield(self, a, fieldnames_to_remove):
+        """ Utility function to remove named columns """
+        return a[[name for name in a.dtype.names if name not in fieldnames_to_remove]]
+
+
+class SpectrumTableNarrow(DataSource):
+    """ Data source from a narrow spectrum file, where
     each variable has its own column """
 
     def __init__(self, filename, target_name='fesc', feature_name='flux_noisy',
-                 feature_id='wavel'):
+                 feature_id='wavel', training_fraction=0.8):
         """ Initialize the data source with a file.
         Also shuffle the data and divide into a test set
         and a training set.
@@ -56,16 +106,17 @@ class NarrowSpectraTable (DataSource):
         :param feature_name: The name of the features column
         :param feature_id: The column containing the name or
         value identifying each feature
+        :param training_fraction: The fraction of the data to
+        use for training
         """
         self.raw_data = np.genfromtxt(filename, names=True,
                                   delimiter=',')
-        self.colnames = self.raw_data.dtype.names
 
         self._make_design_matrix(target_col=target_name, feature_col=feature_name,
                                  id_name1='gal_id', id_name2=target_name,
                                  feature_id=feature_id)
         self._shuffle_data()
-        self._split_data()
+        self._split_data(training_fraction)
 
     def _make_design_matrix(self, target_col, feature_col,
                             id_name1, id_name2, feature_id='wavel'):
