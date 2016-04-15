@@ -59,14 +59,24 @@ class SpectrumTableWide(DataSource):
         :param training_fraction: The fraction of the data to
         use for training
         """
+        # Read the data. We pass the weird string to deletechars to
+        # keep genfromtxt from removing periods in the column names
         self.raw_data = np.genfromtxt(filename, names=True,
-                                      delimiter=',')
+                                      delimiter=',',
+                                      deletechars="""~!@#$%^&*()=+~\|]}[{';: /?>,<""")
         self._make_design_matrix(target_col=target_name,
                                  exclude_cols=exclude_cols)
         self._shuffle_data()
         self._split_data(training_fraction)
 
     def _make_design_matrix(self, target_col, exclude_cols):
+        """
+        Extract the design matrix and target vector from the
+        raw data
+
+        :param target_col: The name of the column containin the target
+        :param exclude_cols: A list of columns that we want to exclude
+        """
         # Check type of exclude_cols
         if not hasattr(exclude_cols, '__iter__'):
             raise ValueError('exclude_cols must be a list of column names, or '
