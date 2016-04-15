@@ -18,7 +18,7 @@ import lasso_spectra
 ```
 
 You need to have `numpy` and `scipy` installed. For `GeneralizedLasso` you
-also need `tensorflow` ([https://www.tensorflow.org]), and for `SKLasso`
+also need `tensorflow` (https://www.tensorflow.org), and for `SKLasso`
 you need `scikit-learn`.
 
 Usage
@@ -26,6 +26,7 @@ Usage
 The file `example.py` shows an example of how to use the package.
 
 In short, there are three steps to using `lasso_spectra`:
+
 1. Load your data
 2. Fit a model
 3. Use the model to predict values from new data
