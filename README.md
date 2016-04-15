@@ -18,7 +18,7 @@ import lasso_spectra
 ```
 
 You need to have `numpy` and `scipy` installed. For `GeneralizedLasso` you
-also need `tensorflow` ([https://www.tensorflow.org](link)), and for `SKLasso`
+also need `tensorflow` ([https://www.tensorflow.org]), and for `SKLasso`
 you need `scikit-learn`.
 
 Usage
