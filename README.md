@@ -9,7 +9,9 @@ to give the same syntax as `GeneralizedLasso`. It is much faster and more
 reliable, but does not support generalized linear models. Use `SKLasso` if
 unsure.
 
-To get started, read this file and look at the included `example.py`.
+To get started, read this file and look at the included `example.py`. To learn
+more about the theory behind the algorithm, see the Theory section of
+[Jensen et al 2016](http://adsabs.harvard.edu/abs/2016arXiv160309610J).
 
 Package installation
 ====================
