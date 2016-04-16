@@ -140,14 +140,15 @@ def test_regularization():
     np.random.seed(1)
     n_features = 5
     func = get_test_model(n_features=n_features)
-    dataset_train, labels_train = get_random_dataset(func, 
-        n_datapoints=1e3, n_features=n_features, noise_level=1.e-10)
+    dataset_train, labels_train = get_random_dataset(func, n_datapoints=1e3,
+                                                     n_features=n_features,
+                                                     noise_level=1.e-10)
 
     alphas = 10**np.linspace(-1, 3, 10)
     alpha_coeffs = np.zeros([n_features, len(alphas)])
     for i, alpha in enumerate(alphas):
         gen_lasso = gl.GeneralizedLasso(alpha=alpha, max_iter=2000,
-        link_function=None)
+                                        link_function=None)
         gen_lasso.fit(dataset_train, labels_train[:,0])
         alpha_coeffs[:,i] = gen_lasso.coeffs[:,0]
 

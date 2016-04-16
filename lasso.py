@@ -5,6 +5,7 @@ from sklearn.linear_model import LassoCV, Lasso
 class SKLasso:
     #TODO: move properties here
     #TODO: add kwargs to sklearn calls
+    #TODO: error messages if using predict or mse without fitting a model first
     def __init__(self, alpha=1.0, normalize=False, max_iter=1000):
         """ This class is basically just a wrapper around the
         scikit-learn Lasso class, but modified to have the
