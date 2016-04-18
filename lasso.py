@@ -3,8 +3,12 @@ from sklearn.linear_model import LassoCV, Lasso
 
 
 class SKLasso:
-    #TODO: move properties here
-    #TODO: error messages if using predict or mse without fitting a model first
+    coeffs = None # The coefficients of the model after fitting
+    bias = None # The bias or intercept term of the model after fitting
+    alpha_mse = None # The cross-validation MSE for each alpha tried when running fit_CV
+    alphas = None # The values of alpha tried when running fit_CV
+    alpha = None # The alpha that gives the lowest cross-validation MSE
+
     def __init__(self, alpha=1.0, normalize=False, max_iter=1000):
         """ This class is basically just a wrapper around the
         scikit-learn Lasso class, but modified to have the
@@ -57,7 +61,8 @@ class SKLasso:
         initalize the scikit-learn LassoCV object
         """
         # Fit model
-        model = LassoCV(alphas=alphas, normalize=self._normalize,
+        self.alphas = alphas
+        model = LassoCV(alphas=self.alphas, normalize=self._normalize,
                         max_iter=self._max_iter, cv=n_folds, **kwargs)
         model.fit(X, y)
 
@@ -77,6 +82,8 @@ class SKLasso:
 
         :return: The estimate of y
         """
+        if self.coeffs is None or self.bias is None:
+            raise Exception('Must fit a model before using predict')
         return self.bias + np.dot(X, self.coeffs)
 
     def mse(self, X, y):
@@ -88,5 +95,7 @@ class SKLasso:
         :param y: The target
         :return: mse: float
         """
+        if self.coeffs is None or self.bias is None:
+            raise Exception('Must fit a model before running mse')
         yhat = self.predict(X)
         return np.mean((yhat-y)**2)
