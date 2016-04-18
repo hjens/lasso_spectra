@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.lib.recfunctions import append_fields
+from distutils.version import LooseVersion
 
 
 class DataSource:
@@ -61,6 +62,12 @@ class SpectrumTableWide(DataSource):
         """
         # Read the data. We pass the weird string to deletechars to
         # keep genfromtxt from removing periods in the column names
+        # This does not seem to work in older versions of numpy,
+        # so check this first.
+        if LooseVersion(np.version.version) < LooseVersion('1.10.4'):
+            print 'Warning! numpy version ', np.version.version, \
+            'may not read column names with periods properly. Check your' \
+            'feature_id property, and consider updating numpy.'
         self.raw_data = np.genfromtxt(filename, names=True,
                                       delimiter=',',
                                       deletechars="""~!@#$%^&*()=+~\|]}[{';: /?>,<""")
