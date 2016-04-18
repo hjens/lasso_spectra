@@ -4,7 +4,6 @@ from sklearn.linear_model import LassoCV, Lasso
 
 class SKLasso:
     #TODO: move properties here
-    #TODO: add kwargs to sklearn calls
     #TODO: error messages if using predict or mse without fitting a model first
     def __init__(self, alpha=1.0, normalize=False, max_iter=1000):
         """ This class is basically just a wrapper around the
@@ -23,23 +22,25 @@ class SKLasso:
         self._normalize = normalize
         self._max_iter = max_iter
 
-    def fit(self, X, y, verbose=True):
+    def fit(self, X, y, **kwargs):
         """ Fit the model to the given data.
 
         :param X: The data matrix. Shape must
                 be (n_samples, n_features)
         :param y: The target
-        :param verbose: If true, output steps
+        :param kwargs: Any additional arguments are passed to the call to
+        initalize the scikit-learn Lasso object
         """
         # Fit model
-        model = Lasso(alpha=self.alpha, normalize=self._normalize)
+        model = Lasso(alpha=self.alpha, normalize=self._normalize, **kwargs)
         model.fit(X, y)
 
         # Save coeffs
         self.coeffs = model.coef_
         self.bias = model.intercept_
 
-    def fit_CV(self, X, y, alphas=np.linspace(0.1, 10, 5), n_folds=10):
+    def fit_CV(self, X, y, alphas=np.linspace(0.1, 10, 5), n_folds=10,
+               **kwargs):
         """ Find the value of alpha that gives the lowest mse, using
         N-fold cross-validation. After this method has ran, the alpha
         property will be set to the value that gives the lowest cross-
@@ -52,10 +53,12 @@ class SKLasso:
         :param y: The target
         :param alphas: The values of alpha to try
         :param n_folds: The number of cross-validation folds
+        :param kwargs: Any additional arguments are passed to the call to
+        initalize the scikit-learn LassoCV object
         """
         # Fit model
         model = LassoCV(alphas=alphas, normalize=self._normalize,
-                        max_iter=self._max_iter, cv=n_folds)
+                        max_iter=self._max_iter, cv=n_folds, **kwargs)
         model.fit(X, y)
 
         # Save coeffs and stuff
