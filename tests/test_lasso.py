@@ -165,7 +165,7 @@ def test_regularization():
 
 
 if __name__ == '__main__':
-    test_cross_validation()
-    #test_linear_regression()
-    #test_regularization()
-    #test_link_function()
+    #test_cross_validation()
+    test_linear_regression()
+    test_regularization()
+    test_link_function()

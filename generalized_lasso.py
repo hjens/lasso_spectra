@@ -1,10 +1,16 @@
 import numpy as np
 import tensorflow as tf
 
-#TODO: move properties to beginning
-
 class GeneralizedLasso:
-    def __init__(self, alpha=1.0, normalize=False, max_iter=1000, 
+    coeffs = None # The coefficients of the model after fitting
+    bias = None # The bias or intercept term of the model after fitting
+    alpha_mse = None # The cross-validation MSE for each alpha tried when running fit_CV
+    alphas = None # The values of alpha tried when running fit_CV
+    alpha = None # The alpha that gives the lowest cross-validation MSE
+    alpha_coeffs = None # The values of the coefficients for each value of alpha
+    alpha_bias = None # The values of the bias for each value of alpha
+
+    def __init__(self, alpha=1.0, normalize=False, max_iter=1000,
                 link_function=None, learning_rate=0.01):
         """ A generalized linear model with L1 regularization and the
         possibility to specify different link functions.
@@ -106,8 +112,9 @@ class GeneralizedLasso:
         self.alpha_mse = np.zeros_like(alphas)
         self.alpha_coeffs = np.zeros((len(alphas), X.shape[1]))
         self.alpha_bias = np.zeros(len(alphas))
+        self.alphas = alphas
 
-        for i, alpha in enumerate(alphas):
+        for i, alpha in enumerate(self.alphas):
             self.alpha = alpha
             mse_sum = 0.
             for fold in range(n_folds):
