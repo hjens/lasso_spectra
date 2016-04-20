@@ -163,9 +163,41 @@ def test_regularization():
     pl.show()
 
 
+def test_normalization():
+    '''
+    Not implemented yet!
+    '''
+    np.random.seed(1)
+    n_features = 5
+    func = get_test_model(n_features=n_features)
+    dataset_train, labels_train = get_random_dataset(func,
+                                                     n_datapoints=5e2,
+                                                     n_features=n_features,
+                                                     noise_level=1.e-10)
+
+    # Fit tf lasso without normalization
+    gen_lasso = gl.GeneralizedLasso(alpha=1.e-10, max_iter=5000,
+                                    link_function=None, normalize=False)
+    gen_lasso.fit(dataset_train, labels_train[:, 0])
+
+    # Fit tf lasso with normalization
+    gen_lasso_norm = gl.GeneralizedLasso(alpha=1.e-10, max_iter=5000,
+                                    link_function=None, normalize=True)
+    gen_lasso_norm.fit(dataset_train, labels_train[:, 0])
+
+
+    # Plot results
+    pl.plot(gen_lasso.coeffs, 'o-', label='without norm')
+    pl.plot(gen_lasso_norm.coeffs, 'o-', label='with norm')
+    pl.plot(func.coeffs, 'x-', label='true')
+    pl.legend(loc='best')
+    pl.title('Test normalization')
+    pl.ylabel('Coeff value')
+    pl.show()
+
 
 if __name__ == '__main__':
     #test_cross_validation()
     test_linear_regression()
-    test_regularization()
-    test_link_function()
+    #test_regularization()
+    #test_link_function()

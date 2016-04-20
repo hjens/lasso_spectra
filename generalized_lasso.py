@@ -13,10 +13,13 @@ class GeneralizedLasso:
     def __init__(self, alpha=1.0, normalize=False, max_iter=1000,
                 link_function=None, learning_rate=0.01):
         """ A generalized linear model with L1 regularization and the
-        possibility to specify different link functions.
+        possibility to specify different link functions. You can easily
+        add new link functions by subclassing this class and overriding
+        the _get_predictor method.
 
         :param alpha: The regularization constant
-        :param normalize: Whether to normalize features before fitting
+        :param normalize: Whether to normalize features before fitting.
+        Not implemented yet!
         :param max_iter: The maximum number of learning epochs to
                 use when fitting
         :param link_function: The link function to use.
