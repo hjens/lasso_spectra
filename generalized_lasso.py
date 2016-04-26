@@ -76,19 +76,19 @@ class GeneralizedLasso:
 
         # Prepare the fitting
         init = tf.initialize_all_variables()
-        self._cost_history = np.zeros(self._max_iter)
+        self.cost_history = np.zeros(self._max_iter)
         sess = tf.Session()
         sess.run(init)
 
         # Fit the model
         for i in range(self._max_iter):
-            if i % 100 == 0 and verbose:
-                print 'Step:', i
             sess.run(train_step, feed_dict={x: X, y_: y})
-            self._cost_history[i] = sess.run(cost, feed_dict={x: X, y_:y})
+            self.cost_history[i] = sess.run(cost, feed_dict={x: X, y_:y})
+            if i % 100 == 0 and verbose:
+                print 'Step:', i, 'cost:', self.cost_history[i]
             # Have we reached a minimum?
             if i > 2:
-                if self._cost_history[-1] > self._cost_history[-2]:
+                if self.cost_history[-1] > self.cost_history[-2]:
                     break
 
         # Save coeffs

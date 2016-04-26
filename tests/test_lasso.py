@@ -126,7 +126,7 @@ def test_link_function():
     pl.title('Test sigmoid link function')
     pl.ylabel('Coeff value')
     pl.subplot(132)
-    pl.semilogy(gen_lasso._cost_history)
+    pl.semilogy(gen_lasso.cost_history)
     pl.ylabel('cost')
     pl.xlabel('iterations')
     pl.subplot(133)
