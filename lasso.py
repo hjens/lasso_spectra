@@ -23,8 +23,8 @@ class SKLasso:
                 use when fitting
         """
         self.alpha = alpha
-        self._normalize = normalize
-        self._max_iter = max_iter
+        self.normalize = normalize
+        self.max_iter = max_iter
 
     def fit(self, X, y, **kwargs):
         """ Fit the model to the given data.
@@ -36,7 +36,7 @@ class SKLasso:
         initalize the scikit-learn Lasso object
         """
         # Fit model
-        model = Lasso(alpha=self.alpha, normalize=self._normalize, **kwargs)
+        model = Lasso(alpha=self.alpha, normalize=self.normalize, **kwargs)
         model.fit(X, y)
 
         # Save coeffs
@@ -62,8 +62,8 @@ class SKLasso:
         """
         # Fit model
         self.alphas = alphas
-        model = LassoCV(alphas=self.alphas, normalize=self._normalize,
-                        max_iter=self._max_iter, cv=n_folds, **kwargs)
+        model = LassoCV(alphas=self.alphas, normalize=self.normalize,
+                        max_iter=self.max_iter, cv=n_folds, **kwargs)
         model.fit(X, y)
 
         # Save coeffs and stuff
