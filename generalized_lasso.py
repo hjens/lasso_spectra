@@ -86,10 +86,6 @@ class GeneralizedLasso:
             self.cost_history[i] = sess.run(cost, feed_dict={x: X, y_:y})
             if i % 100 == 0 and verbose:
                 print 'Step:', i, 'cost:', self.cost_history[i]
-            # Have we reached a minimum?
-            if i > 2:
-                if self.cost_history[-1] > self.cost_history[-2]:
-                    break
 
         # Save coeffs
         self.coeffs = sess.run(coeffs)
