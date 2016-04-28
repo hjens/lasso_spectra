@@ -30,10 +30,10 @@ class GeneralizedLasso:
         :type link_function: string
         """
         self.alpha = alpha
-        self._normalize = normalize
-        self._max_iter = max_iter
-        self._link_function = link_function
-        self._learning_rate = learning_rate
+        self.normalize = normalize
+        self.max_iter = max_iter
+        self.link_function = link_function
+        self.learning_rate = learning_rate
 
     def fit(self, X, y, verbose=True):
         """ Fit the model to the given data.
@@ -71,23 +71,23 @@ class GeneralizedLasso:
         cost =  self._get_cost_function(predict, y_, n_samples, coeffs)
 
         # Minimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=self._learning_rate)
+        optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
         train_step = optimizer.minimize(cost)
 
         # Prepare the fitting
         init = tf.initialize_all_variables()
-        self.cost_history = np.zeros(self._max_iter)
+        self.cost_history = np.zeros(self.max_iter)
         sess = tf.Session()
         sess.run(init)
 
         # Fit the model
-        for i in range(self._max_iter):
+        for i in range(self.max_iter):
             sess.run(train_step, feed_dict={x: X, y_: y})
             self.cost_history[i] = sess.run(cost, feed_dict={x: X, y_:y})
             if i % 100 == 0 and verbose:
                 print 'Step:', i, 'cost:', self.cost_history[i]
 
-        # Save coeffs
+        # Save coeffs as properties of the object
         self.coeffs = sess.run(coeffs)
         self.bias = sess.run(bias)
 
@@ -220,13 +220,13 @@ class GeneralizedLasso:
     #--------- Building the tensorflow computational graph ----
     def _get_predictor(self, x, coeffs, bias):
         """Create the prediction part of the tf graph """
-        if self._link_function is None:
+        if self.link_function is None:
             predict = tf.matmul(x, coeffs) + bias
-        elif self._link_function == 'sigmoid':
+        elif self.link_function == 'sigmoid':
             predict = tf.sigmoid(tf.matmul(x, coeffs) + bias)
         else:
             raise ValueError('Invalid link function: %s' % \
-                 self._link_function)
+                             self.link_function)
         return predict
 
     def _get_cost_function(self, predict, y_, n_samples, coeffs):

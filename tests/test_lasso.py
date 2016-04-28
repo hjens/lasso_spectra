@@ -197,7 +197,7 @@ def test_normalization():
 
 
 if __name__ == '__main__':
-    #test_cross_validation()
+    test_cross_validation()
     test_linear_regression()
-    #test_regularization()
-    #test_link_function()
+    test_regularization()
+    test_link_function()
